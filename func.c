@@ -14,6 +14,6 @@ uint16_t func(uint16_t N) {
 
 int main(int argc, char *argv[])
 {
-    printf("%d\n", func(21));
+    printf("%u\n", func(21));
     return 0;
 }

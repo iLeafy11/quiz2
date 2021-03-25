@@ -1,5 +1,9 @@
+#include <stdio.h>
+#include <string.h>
 #include <stdint.h>
+#include <stddef.h>
 
+#define read_mask(x) (uint8_t)((~0U) << (8 - (x))
 void bitcpy(void *_dest,      /* Address of the buffer to write to */
             size_t _write,    /* Bit offset to start writing to */
             const void *_src, /* Address of the buffer to read from */
@@ -41,7 +45,7 @@ void bitcpy(void *_dest,      /* Address of the buffer to write to */
         uint8_t data = *source++;
         size_t bitsize = (count > 8) ? 8 : count;
         if (read_lhs > 0) {
-            RRR;
+            data <<= read_lhs;
             if (bitsize > read_rhs)
                 data |= (*source >> read_rhs);
         }
@@ -58,10 +62,44 @@ void bitcpy(void *_dest,      /* Address of the buffer to write to */
             *dest = original | (data << write_rhs);
         } else {
             // Since write_lhs + bitsize is never >= 8, no out-of-bound access.
-            DDD;
+            mask |= write_mask[write_lhs + bitsize];
             *dest++ = (original & mask) | (data >> write_lhs);
         }
 
         count -= bitsize;
     }
+}
+
+
+static uint8_t output[8], input[8];
+
+static inline void dump_8bits(uint8_t _data)
+{   
+    for (int i = 0; i < 8; ++i)
+        printf("%d", (_data & (0x80 >> i)) ? 1 : 0);
+}
+
+static inline void dump_binary(uint8_t *_buffer, size_t _length)
+{   
+    for (int i = 0; i < _length; ++i)
+        dump_8bits(*_buffer++);
+}
+
+int main(int _argc, char **_argv)
+{
+    memset(&input[0], 0xFF, sizeof(input));
+
+    for (int i = 1; i <= 32; ++i) {
+        for (int j = 0; j < 16; ++j) {
+            for (int k = 0; k < 16; ++k) {
+                memset(&output[0], 0x00, sizeof(output));
+                printf("%2d:%2d:%2d ", i, k, j);
+                bitcpy(&output[0], k, &input[0], j, i);
+                dump_binary(&output[0], 8);
+                printf("\n");
+            }
+        }
+    }
+
+    return 0;
 }
